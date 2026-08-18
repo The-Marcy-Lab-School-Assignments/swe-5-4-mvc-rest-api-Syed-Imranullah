@@ -1,15 +1,16 @@
-const express = require('express');
-const path = require('path');
+const express = require("express");
+const path = require("path");
+const todoControllers = require("./controllers/todoControllers");
 
 const app = express();
-const pathToFrontend = path.join(__dirname, '../frontend');
+const pathToFrontend = path.join(__dirname, "../frontend");
 
 ////////////////////////
 // Middleware
 ////////////////////////
 
 const logRoutes = (req, res, next) => {
-  const time = (new Date()).toLocaleString();
+  const time = new Date().toLocaleString();
   console.log(`${req.method}: ${req.originalUrl} - ${time}`);
   next();
 };
@@ -19,54 +20,28 @@ app.use(express.static(pathToFrontend));
 app.use(express.json());
 
 ////////////////////////
-// In-Memory Database
+// Routes
 ////////////////////////
 
-
-// Increments and returns a unique id each time it is called.
-let id = 1;
-const getId = () => id++;
-
-// Seed data — do not remove
-const todos = [
-  { id: getId(), task: 'Buy groceries', isDone: false },
-  { id: getId(), task: 'Walk the dog', isDone: true },
-  { id: getId(), task: 'Read a book', isDone: false },
-];
+app.get("/api/todos", todoControllers.listTodos);
+app.get("/api/todos/:id", todoControllers.findTodo);
+app.post("/api/todos", todoControllers.createTodo);
+app.patch("/api/todos/:id", todoControllers.updateTodo);
+app.delete("/api/todos/:id", todoControllers.deleteTodo);
 
 ////////////////////////
-// Endpoints
+// Catch-All Handler
 ////////////////////////
 
-// TODO: GET /api/todos
-// Response: 200, array of all todos
+app.use((req, res) => {
+  res.status(404).json({
+    message: `Error: Not found ${req.originalUrl}`,
+  });
+});
 
-
-// TODO: GET /api/todos/:id
-// Response: 200, single todo object
-// Error: 404 if no todo with that id
-
-
-// TODO: POST /api/todos
-// Request body: { task }
-// Response: 201, the newly created todo object
-// Error: 400 if task is missing from the request body
-
-
-// TODO: PATCH /api/todos/:id
-// Request body: { isDone }
-// Response: 200, the updated todo object
-// Error: 404 if no todo with that id
-
-
-// TODO: DELETE /api/todos/:id
-// Response: 204, no content
-// Error: 404 if no todo with that id
-
-
-// TODO: Catch-all handler — send a 404 JSON error for unmatched /api routes,
-// or serve index.html for all other routes (SPA fallback)
-
+////////////////////////
+// Server
+////////////////////////
 
 const port = 8080;
 app.listen(port, () => console.log(`Listening at http://localhost:${port}`));
